@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KoreaPremium Travel - Perjalanan Mewah Korea Selatan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+         * { font-family: 'Poppins', sans-serif; }
+        .glass { backdrop-filter: blur(20px); background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); }
+        .hero-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .gradient-text { 
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #f9ca24);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .neon-glow { box-shadow: 0 0 30px rgba(255, 107, 107, 0.6); }
+        @keyframes float { 0%,100%{transform:translateY(0px);}50%{transform:translateY(-20px);} }
+        .animate-float { animation: float 6s ease-in-out infinite; }
+        @keyframes fadeInUp { from{opacity:0;transform:translateY(50px);}to{opacity:1;transform:translateY(0);} }
+        .animate-fadeInUp { animation: fadeInUp 0.8s ease-out forwards; }
+        .logo-glow { filter: drop-shadow(0 0 10px rgba(255,107,107,0.8)); }
+        .language-selector { position: fixed; top: 100px; right: 20px; z-index: 1000; }
+        .payment-card { transition: all 0.3s ease; }
+        .payment-card:hover { transform: translateY(-5px); }
+        .history-timeline { position: relative; }
+        .history-timeline::before { content: ''; position: absolute; left: 20px; top: 0; bottom: 0; width: 2px; background: linear-gradient(to bottom, transparent, #4ecdc4, transparent); }
+        .history-item { position: relative; margin-left: 40px; }
+        .unified-form { border: 3px solid rgba(255,255,255,0.3); }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white overflow-x-hidden">
+<!-- Loading Screen -->
+<div id="loading" class="fixed inset-0 bg-gradient-to-br from-slate-900 to-purple-900 z-50 flex items-center justify-center">
+    <div class="text-center">
+        <div class="logo-glow w-24 h-24 bg-gradient-to-r from-pink-500 to-purple-500 rounded-2xl flex items-center justify-center mx-auto mb-8 animate-pulse">
+            <i class="fas fa-plane text-3xl text-white"></i>
+        </div>
+        <div class="w-24 h-2 bg-gradient-to-r from-emerald-400 to-blue-500 rounded-full mx-auto animate-[pulse_1.5s_ease-in-out_infinite]"></div>
+        <p class="mt-4 text-xl font-semibold gradient-text">Loading KoreaPremium...</p>
+    </div>
+</div>
+
+<!-- Dashboard Progress -->
+<div id="dashboard" class="fixed top-0 left-0 w-full h-2 bg-gradient-to-r from-emerald-400 to-blue-500 transform scale-x-0 origin-left transition-all duration-1000 z-50"></div>
+
+<!-- Navigation -->
+<nav class="fixed w-full z-40 glass py-4 px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+        <!-- Logo -->
+        <a href="#home" class="flex items-center space-x-3 group">
+            <div class="w-14 h-14 bg-gradient-to-r from-pink-500 via-purple-500 to-pink-500 rounded-2xl flex items-center justify-center logo-glow group-hover:scale-110 transition-all duration-300 shadow-2xl">
+                <i class="fas fa-plane text-white text-2xl"></i>
+            </div>
+            <div>
+                <span class="text-2xl font-bold gradient-text">KoreaPremium</span>
+                <span class="block text-xs text-white/60 font-semibold">TRAVEL</span>
+            </div>
+        </a>
+
+        <!-- Desktop Menu -->
+        <div class="hidden lg:flex items-center space-x-8">
+            <a href="#home" class="nav-link flex items-center space-x-2 hover:text-cyan-400 transition-all duration-300">
+                <i class="fas fa-home"></i><span>Beranda</span>
+            </a>
+            <a href="#unified-booking" class="nav-link flex items-center space-x-2 hover:text-cyan-400 transition-all duration-300">
+                <i class="fas fa-plane"></i><span>Pemesanan</span>
+            </a>
+            <a href="#maps" class="nav-link flex items-center space-x-2 hover:text-cyan-400 transition-all duration-300">
+                <i class="fas fa-map"></i><span>Maps</span>
+            </a>
+        </div>
+         <div class="flex items-center space-x-4">
+                    <button id="cartBtn" class="relative p-2 hover:bg-white/20 rounded-xl transition-all duration-300">
+                        <i class="fas fa-shopping-cart text-xl"></i>
+                        <span class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-xs rounded-full flex items-center justify-center animate-pulse" id="cartCount">0</span>
+                    </button>
+                    <div class="flex space-x-2 p-2 bg-white/10 rounded-xl">
+                        <a href="https://wa.me/6285358655291" class="p-2 hover:bg-green-500 hover:rotate-12 transition-all duration-300 rounded-lg">
+                            <i class="fab fa-whatsapp text-2xl text-green-400"></i>
+                        </a>
+                        <a href="https://instagram.com/koreapremium" class="p-2 hover:bg-pink-500 hover:rotate-12 transition-all duration-300 rounded-lg">
+                            <i class="fab fa-instagram text-2xl text-pink-400"></i>
+                        </a>
+                        <a href="mailto:hello@koreapremium.com" class="p-2 hover:bg-blue-500 hover:rotate-12 transition-all duration-300 rounded-lg">
+                            <i class="fas fa-envelope text-2xl text-blue-400"></i>
+                        </a>
+                    </div>
+                    <button id="menuToggle" class="md:hidden p-2 hover:bg-white/20 rounded-xl">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+ <!-- Hero Section -->
+<section id="home" class="min-h-screen hero-bg flex items-center justify-center pt-24 relative overflow-hidden">
+    <div class="absolute inset-0">
+        <div class="absolute top-1/4 left-10 w-72 h-72 bg-purple-400/20 rounded-full animate-float"></div>
+        <div class="absolute bottom-1/4 right-10 w-96 h-96 bg-pink-400/20 rounded-full animate-float delay-1000"></div>
+        <div class="absolute top-1/2 left-1/2 w-40 h-40 bg-emerald-400/20 rounded-full animate-ping"></div>
+    </div>
+    <div class="max-w-6xl mx-auto px-6 text-center relative z-10">
+        <h1 class="text-5xl md:text-7xl font-bold mb-8 gradient-text drop-shadow-2xl animate-fadeInUp">
+            <span id="hero-title">Korea Premium Travel</span>
+            <span class="block text-3xl md:text-4xl text-white/90" id="hero-subtitle">Perjalanan Mewah ke Negeri Ginseng</span>
+        </h1>
+        <p class="text-xl md:text-2xl mb-12 max-w-3xl mx-auto text-white/90 leading-relaxed animate-fadeInUp animation-delay-500" id="hero-desc">
+            Hotel Bintang 5 ⭐ | Kuliner Michelin | Penerbangan Business Class | Transportasi VIP | Kurs KRW Terbaik
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center items-center max-w-4xl mx-auto animate-fadeInUp animation-delay-1000">
+            <button onclick="scrollToSection('unified-booking')" class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 px-12 py-5 rounded-3xl font-bold text-xl shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-500 neon-glow">
+                <i class="fas fa-plane mr-2"></i><span id="search-btn">Pesan Sekarang</span>
+            </button>
+            <button onclick="scrollToSection('maps')" class="glass px-12 py-5 rounded-3xl font-bold text-xl border-2 border-white/30 hover:bg-white/20 transition-all duration-500 hover:scale-105">
+                <i class="fas fa-map mr-2"></i><span id="maps-btn">Lihat Maps Korea</span>
+            </button>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Dashboard -->
+<section class="py-20 bg-gradient-to-r from-slate-800 to-purple-900/50">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div class="glass p-8 rounded-3xl border border-white/20 hover:scale-105 transition-all duration-500 group">
+                <div class="flex items-center space-x-4">
+                    <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center group-hover:rotate-180 transition-all duration-700">
+                        <i class="fas fa-plane text-2xl text-white"></i>
+                    </div>
+                    <div>
+                        <p class="text-3xl font-bold text-cyan-400" data-target="1247">0</p>
+                        <p class="text-white/70">Penerbangan</p>
+                    </div>
+                </div>
+            </div>
+            <div class="glass p-8 rounded-3xl border border-white/20 hover:scale-105 transition-all duration-500 group">
+                <div class="flex items-center space-x-4">
+                    <div class="w-16 h-16 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl flex items-center justify-center group-hover:rotate-180 transition-all duration-700">
+                        <i class="fas fa-hotel text-2xl text-white"></i>
+                    </div>
+                    <div>
+                        <p class="text-3xl font-bold text-emerald-400" data-target="892">0</p>
+                        <p class="text-white/70">Hotel Premium</p>
+                    </div>
+                </div>
+            </div>
+            <div class="glass p-8 rounded-3xl border border-white/20 hover:scale-105 transition-all duration-500 group">
+                <div class="flex items-center space-x-4">
+                    <div class="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center group-hover:rotate-180 transition-all duration-700">
+                        <i class="fas fa-utensils text-2xl text-white"></i>
+                    </div>
+                    <div>
+                        <p class="text-3xl font-bold text-purple-400" data-target="2450">0</p>
+                        <p class="text-white/70">Kuliner</p>
+                    </div>
+                </div>
+            </div>
+            <div class="glass p-8 rounded-3xl border border-white/20 hover:scale-105 transition-all duration-500 group">
+                <div class="flex items-center space-x-4">
+                    <div class="w-16 h-16 bg-gradient-to-r from-orange-500 to-red-500 rounded-2xl flex items-center justify-center group-hover:rotate-180 transition-all duration-700">
+                        <i class="fas fa-users text-2xl text-white"></i>
+                    </div>
+                    <div>
+                        <p class="text-3xl font-bold text-orange-400" data-target="15000">0</p>
+                        <p class="text-white/70">Pelanggan</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- History Section -->
+<section id="history" class="py-24 bg-gradient-to-r from-orange-900/30 to-amber-900/30">
+    <div class="max-w-7xl mx-auto px-6">
+        <div class="text-center mb-20 animate-fadeInUp">
+            <h2 class="text-5xl md:text-6xl font-bold gradient-text mb-6" id="history-title">📜 Sejarah KoreaPremium</h2>
+            <p class="text-xl md:text-2xl text-white/80 max-w-3xl mx-auto" id="history-desc">Perjalanan 5 tahun membawa wisatawan Indonesia menikmati kemewahan Korea</p>
+        </div>
+        <div class="history-timeline max-w-4xl mx-auto">
+            <div class="history-item glass p-8 rounded-4xl mb-12 animate-fadeInUp" style="animation-delay: 100ms">
+                <div class="flex items-center space-x-6">
+                    <div class="w-20 h-20 bg-gradient-to-br from-orange-500 to-yellow-500 rounded-3xl flex items-center justify-center text-2xl font-bold shadow-2xl">2020</div>
+                    <div>
+                        <h3 class="text-2xl font-bold mb-2" id="history-2020-title">Didirikan di Masa Pandemi</h3>
+                        <p class="text-white/80" id="history-2020-desc">KoreaPremium lahir dari passion traveling saat dunia terhenti. Kami mulai dengan virtual tour Korea untuk 500+ pelanggan Indonesia.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="history-item glass p-8 rounded-4xl mb-12 animate-fadeInUp" style="animation-delay: 200ms">
+                <div class="flex items-center space-x-6">
+                    <div class="w-20 h-20 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-3xl flex items-center justify-center text-2xl font-bold shadow-2xl">2022</div>
+                    <div>
+                        <h3 class="text-2xl font-bold mb-2" id="history-2022-title">Grand Opening Korea</h3>
+                        <p class="text-white/80" id="history-2022-desc">Pertama kali terbangkan 150 wisatawan ke Seoul dengan Business Class. Resmi terdaftar sebagai agen perjalanan berizin Kemenparekraf.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="history-item glass p-8 rounded-4xl mb-12 animate-fadeInUp" style="animation-delay: 300ms">
+                <div class="flex items-center space-x-6">
+                    <div class="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-3xl flex items-center justify-center text-2xl font-bold shadow-2xl">2023</div>
+                    <div>
+                        <h3 class="text-2xl font-bold mb-2" id="history-2023-title">Ekspansi Jeju & Busan</h3>
+                        <p class="text-white/80" id="history-2023-desc">Buka rute Jeju Island dan Busan. Kerjasama eksklusif dengan Lotte Hotel dan Signiel Seoul. 5000+ pelanggan puas.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="history-item glass p-8 rounded-4xl animate-fadeInUp" style="animation-delay: 400ms">
+                <div class="flex items-center space-x-6">
+                    <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-3xl flex items-center justify-center text-2xl font-bold shadow-2xl">2024</div>
+                    <div>
+                        <h3 class="text-2xl font-bold mb-2" id="history-2024-title">Premium Digital Platform</h3>
+                        <p class="text-white/80" id="history-2024-desc">Luncurkan website interaktif dengan AI booking, maps 3D, dan sistem pembayaran terintegrasi. Target 15.000 pelanggan tahun ini!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- GALERI FOTO SEJARAH & DESTINASI KOREA -->
+<section id="gallery" class="py-24 bg-gradient-to-r from-amber-900/20 via-orange-900/20 to-amber-900/20">
+    <div class="max-w-7xl mx-auto px-6">
+        <div class="text-center mb-20 animate-fadeInUp">
+            <h2 class="text-5xl md:text-6xl font-bold gradient-text mb-6">📸 Galeri Korea Premium</h2>
+            <p class="text-xl md:text-2xl text-white/80 max-w-3xl mx-auto">Lihat keindahan Korea yang akan Anda nikmati</p>
+        </div>
+        
+        <!-- Photo Grid -->
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+            <!-- Gyeongbokgung Palace -->
+            <div class="glass p-4 rounded-4xl group hover:scale-105 transition-all duration-500 cursor-pointer overflow-hidden" onclick="openLightbox(0)">
+                <div class="relative overflow-hidden rounded-3xl h-64 bg-gradient-to-br from-blue-500/20 to-purple-500/20">
+                    <img src="https://i.pinimg.com/1200x/8b/38/95/8b38959ce349d5c3abd29bf5c092793e.jpg" 
+                         alt="Gyeongbokgung Palace" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-all"></div>
+                    <div class="absolute bottom-4 left-4 text-white opacity-0 group-hover:opacity-100 transition-all">
+                        <h4 class="font-bold text-xl mb-1">🏯 Gyeongbokgung</h4>
+                        <p class="text-sm">Istana Kerajaan 1395</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Myeongdong Street Food -->
+            <div class="glass p-4 rounded-4xl group hover:scale-105 transition-all duration-500 cursor-pointer overflow-hidden" onclick="openLightbox(1)">
+                <div class="relative overflow-hidden rounded-3xl h-64 bg-gradient-to-br from-red-500/20 to-orange-500/20">
+                    <img src="https://i.pinimg.com/1200x/65/e1/60/65e160a2894a5722441fa234e5202bea.jpg" 
+                         alt="Myeongdong Street Food" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-all"></div>
+                    <div class="absolute bottom-4 left-4 text-white opacity-0 group-hover:opacity-100 transition-all">
+                        <h4 class="font-bold text-xl mb-1">🍜 Myeongdong</h4>
+                        <p class="text-sm">Street Food Terkenal</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lotte World Tower -->
+            <div class="glass p-4 rounded-4xl group hover:scale-105 transition-all duration-500 cursor-pointer overflow-hidden" onclick="openLightbox(2)">
+                <div class="relative overflow-hidden rounded-3xl h-64 bg-gradient-to-br from-emerald-500/20 to-teal-500/20">
+                    <img src="https://i.pinimg.com/1200x/90/e4/2a/90e42ad0523df9fb8e14dfa6b8d43c55.jpg" 
+                         alt="Lotte World Tower" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-all"></div>
+                    <div class="absolute bottom-4 left-4 text-white opacity-0 group-hover:opacity-100 transition-all">
+                        <h4 class="font-bold text-xl mb-1">🏢 Lotte World Tower</h4>
+                        <p class="text-sm">Hotel Signiel 5⭐</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Haeundae Beach Busan -->
+            <div class="glass p-4 rounded-4xl group hover:scale-105 transition-all duration-500 cursor-pointer overflow-hidden" onclick="openLightbox(3)">
+                <div class="relative overflow-hidden rounded-3xl h-64 bg-gradient-to-br from-blue-500/20 to-cyan-500/20">
+                    <img src="https://i.pinimg.com/1200x/c0/0c/6b/c00c6b2cd0e34d1aa60b37a20f9e24ab.jpg" 
+                         alt="Haeundae Beach" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-all"></div>
+                    <div class="absolute bottom-4 left-4 text-white opacity-0 group-hover:opacity-100 transition-all">
+                        <h4 class="font-bold text-xl mb-1">🏖️ Haeundae Beach</h4>
+                        <p class="text-sm">Busan Kemewahan</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Jeju Island -->
+            <div class="glass p-4 rounded-4xl group hover:scale-105 transition-all duration-500 cursor-pointer overflow-hidden" onclick="openLightbox(4)">
+                <div class="relative overflow-hidden rounded-3xl h-64 bg-gradient-to-br from-purple-500/20 to-pink-500/20">
+                    <img src="https://i.pinimg.com/736x/57/3a/59/573a595ee0de58267e40f4392e4c7c79.jpg" 
+                         alt="Jeju Island" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-all"></div>
+                    <div class="absolute bottom-4 left-4 text-white opacity-0 group-hover:opacity-100 transition-all">
+                        <h4 class="font-bold text-xl mb-1">🌋 Jeju Island</h4>
+                        <p class="text-sm">Surga Tropis Korea</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hanok Village -->
+            <div class="glass p-4 rounded-4xl group hover:scale-105 transition-all duration-500 cursor-pointer overflow-hidden" onclick="openLightbox(5)">
+                <div class="relative overflow-hidden rounded-3xl h-64 bg-gradient-to-br from-orange-500/20 to-yellow-500/20">
+                    <img src="https://i.pinimg.com/1200x/65/56/40/655640b96c2ccb2b9f027bfb6fcfe063.jpg" 
+                         alt="Hanok Village" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-all"></div>
+                    <div class="absolute bottom-4 left-4 text-white opacity-0 group-hover:opacity-100 transition-all">
+                        <h4 class="font-bold text-xl mb-1">🏘️ Hanok Village</h4>
+                        <p class="text-sm">Rumah Tradisional</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- UNIFIED BOOKING FORM - SATU FORM UNTUK SEMUA PEMESANAN -->
+<section id="unified-booking" class="py-24 bg-gradient-to-r from-emerald-900/30 via-blue-900/30 to-purple-900/30">
+    <div class="max-w-7xl mx-auto px-6">
+        <div class="text-center mb-20 animate-fadeInUp">
+            <h2 class="text-5xl md:text-6xl font-bold gradient-text mb-6">✨ Satu Form Lengkap - Pesan Semua!</h2>
+            <p class="text-xl md:text-2xl text-white/80 max-w-3xl mx-auto">Penerbangan + Hotel + Kuliner + Transportasi + Pembayaran = <strong>1 Klik WA</strong></p>
+        </div>
+
+        <!-- SINGLE UNIFIED FORM -->
+        <form id="unifiedForm" class="unified-form glass p-12 lg:p-20 rounded-5xl space-y-10 max-w-6xl mx-auto animate-fadeInUp shadow-2xl border-3 border-emerald-400/50">
+            
+            <!-- HEADER SUMMARY -->
+            <div class="text-center p-8 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-4xl border-2 border-emerald-400/50">
+                <h3 class="text-3xl font-bold gradient-text mb-2">📋 Paket Korea Premium Lengkap</h3>
+                <p class="text-xl text-white/90">Pilih semua yang diinginkan - otomatis terhitung!</p>
+                <div class="mt-4 text-2xl font-bold text-emerald-400" id="totalEstimate">Rp 0</div>
+            </div>
+
+            <!-- ROW 1: BASIC TRIP INFO -->
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div>
+                    <label class="block text-white/90 font-semibold mb-3 text-lg">🛫 Asal Penerbangan</label>
+                    <select id="departure" class="w-full p-5 rounded-3xl bg-white/20 border border-white/30 focus:border-cyan-400 focus:outline-none text-white text-lg" required>
+                        <option value="">Pilih Kota Asal</option>
+                        <option value="CGK-Jakarta">Jakarta (CGK)</option>
+                        <option value="SUB-Surabaya">Surabaya (SUB)</option>
+                        <option value="DPS-Bali">Bali (DPS)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-white/90 font-semibold mb-3 text-lg">✈️ Tujuan Korea</label>
+                    <select id="destination" class="w-full p-5 rounded-3xl bg-white/20 border border-white/30 focus:border-cyan-400 focus:outline-none text-white text-lg" required>
+                        <option value="">Pilih Kota Korea</option>
+                        <option value="ICN-Seoul">Seoul Incheon (ICN)</option>
+                        <option value="PUS-Busan">Busan (PUS)</option>
+                        <option value="CJU-Jeju">Jeju Island (CJU)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-white/90 font-semibold mb-3 text-lg">📅 Tanggal Pergi</label>
+                    <input type="date" id="departDate" class="w-full p-5 rounded-3xl bg-white/20 border border-white/30 focus:border-emerald-400 focus:outline-none text-white text-lg" required>
+                </div>
+                <div>
+                    <label class="block text-white/90 font-semibold mb-3 text-lg">📅 Tanggal Pulang</label>
+                    <input type="date" id="returnDate" class="w-full p-5 rounded-3xl bg-white/20 border border-white/30 focus:border-emerald-400 focus:outline-none text-white text-lg">
+                </div>
+                <div>
+                    <label class="block text-white/90 font-semibold mb-3 text-lg">👥 Jumlah Orang</label>
+                    <select id="passengers" class="w-full p-5 rounded-3xl bg-white/20 border border-white/30 focus:border-purple-400 focus:outline-none text-white text-lg">
+                        <option value="1">1 Orang</option>
+                        <option value="2">2 Orang</option>
+                        <option value="3">3 Orang</option>
+                        <option value="4">4+ Orang</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- ROW 2: SERVICES SELECTION -->
+            <div class="p-8 bg-white/5 rounded-4xl">
+                <h4 class="text-2xl font-bold mb-8 text-center gradient-text">🎯 Pilih Layanan Premium</h4>
+                               <div class="grid lg:grid-cols-4 md:grid-cols-2 gap-6">
+                    <label class="p-8 glass rounded-4xl cursor-pointer hover:scale-105 transition-all duration-300 group border-2 border-transparent hover:border-emerald-400/50">
+                        <input type="checkbox" id="flight" name="services" value="flight" class="hidden" data-price="18500000">
+                        <div class="text-center">
+                            <div class="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-3xl flex items-center justify-center group-hover:scale-110 transition-all shadow-2xl">
+                                <i class="fas fa-plane text-2xl text-white"></i>
+                            </div>
+                            <h4 class="font-bold text-xl mb-2 gradient-text">Business Class</h4>
+                            <p class="text-emerald-400 font-bold text-lg">Rp 18.5jt</p>
+                            <p class="text-white/70 text-sm">CGK-ICN PP + Lounge</p>
+                        </div>
+                    </label>
+                    <label class="p-8 glass rounded-4xl cursor-pointer hover:scale-105 transition-all duration-300 group border-2 border-transparent hover:border-emerald-400/50">
+                        <input type="checkbox" id="hotel" name="services" value="hotel" class="hidden" data-price="28000000">
+                        <div class="text-center">
+                            <div class="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-3xl flex items-center justify-center group-hover:scale-110 transition-all shadow-2xl">
+                                <i class="fas fa-hotel text-2xl text-white"></i>
+                            </div>
+                            <h4 class="font-bold text-xl mb-2 gradient-text">Hotel 5⭐</h4>
+                            <p class="text-emerald-400 font-bold text-lg">Rp 28jt</p>
+                            <p class="text-white/70 text-sm">Signiel/Lotte 7 Malam</p>
+                        </div>
+                    </label>
+                    <label class="p-8 glass rounded-4xl cursor-pointer hover:scale-105 transition-all duration-300 group border-2 border-transparent hover:border-emerald-400/50">
+                        <input type="checkbox" id="culinary" name="services" value="culinary" class="hidden" data-price="7500000">
+                        <div class="text-center">
+                            <div class="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-orange-500 to-red-500 rounded-3xl flex items-center justify-center group-hover:scale-110 transition-all shadow-2xl">
+                                <i class="fas fa-utensils text-2xl text-white"></i>
+                            </div>
+                            <h4 class="font-bold text-xl mb-2 gradient-text">Kuliner Michelin</h4>
+                            <p class="text-emerald-400 font-bold text-lg">Rp 7.5jt</p>
+                            <p class="text-white/70 text-sm">Hanwoo + Street Food</p>
+                        </div>
+                    </label>
+                    <label class="p-8 glass rounded-4xl cursor-pointer hover:scale-105 transition-all duration-300 group border-2 border-transparent hover:border-emerald-400/50">
+                        <input type="checkbox" id="transport" name="services" value="transport" class="hidden" data-price="4500000">
+                        <div class="text-center">
+                            <div class="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-purple-500 to-pink-500 rounded-3xl flex items-center justify-center group-hover:scale-110 transition-all shadow-2xl">
+                                <i class="fas fa-car text-2xl text-white"></i>
+                            </div>
+                            <h4 class="font-bold text-xl mb-2 gradient-text">Transportasi VIP</h4>
+                            <p class="text-emerald-400 font-bold text-lg">Rp 4.5jt</p>
+                            <p class="text-white/70 text-sm">KTX + VIP Taxi</p>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- ROW 3: CURRENCY & ADDONS -->
+            <div class="grid lg:grid-cols-2 gap-8 items-center">
+                <div class="glass p-8 rounded-4xl border-2 border-yellow-400/30">
+                    <h4 class="text-2xl font-bold mb-6 flex items-center gradient-text">
+                        <i class="fas fa-exchange-alt mr-3 text-3xl"></i>Kurs KRW Terbaik
+                    </h4>
+                    <div class="grid md:grid-cols-2 gap-6 items-center">
+                        <div class="text-center p-6 bg-yellow-500/20 rounded-3xl">
+                            <div class="text-4xl font-bold text-yellow-400 mb-1" id="krwRate">15,250</div>
+                            <div class="text-white/70">1 KRW = Rp</div>
+                        </div>
+                        <div>
+                            <input type="number" id="idrInput" placeholder="Rp 10.000.000" class="w-full p-4 rounded-3xl bg-white/20 border border-white/30 focus:border-yellow-400 text-white text-lg" oninput="calculateKRW()">
+                            <div class="text-center mt-3 p-4 bg-yellow-500/20 rounded-3xl">
+                                <div class="text-3xl font-bold text-yellow-400" id="krwOutput">65,574</div>
+                                <div class="text-white/70 text-sm">KRW</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-white/90 font-semibold mb-3 text-lg">💰 Budget Maksimal</label>
+                    <select id="budget" class="w-full p-5 rounded-3xl bg-white/20 border border-white/30 focus:border-orange-400 focus:outline-none text-white text-lg">
+                        <option value="">Tidak Terbatas</option>
+                        <option value="20-50jt">20 - 50 Juta</option>
+                        <option value="50-100jt">50 - 100 Juta</option>
+                        <option value="100jt+">100 Juta +</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- ROW 4: CUSTOMER INFO -->
+            <div class="p-8 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-4xl">
+                <h4 class="text-2xl font-bold mb-8 text-center gradient-text">👤 Data Pemesan</h4>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div>
+                        <label class="block text-white/90 font-semibold mb-3 text-lg">Nama Lengkap</label>
+                        <input type="text" id="customerName" class="w-full p-5 rounded-3xl bg-white/20 border border-white/30 focus:border-cyan-400 focus:outline-none text-white text-lg placeholder-white/50" placeholder="John Doe" required>
+                    </div>
+                    <div>
+                        <label class="block text-white/90 font-semibold mb-3 text-lg">📱 WhatsApp</label>
+                        <input type="tel" id="customerPhone" class="w-full p-5 rounded-3xl bg-white/20 border border-white/30 focus:border-green-400 focus:outline-none text-white text-lg placeholder-white/50" placeholder="081234567890" required>
+                    </div>
+                    <div>
+                        <label class="block text-white/90 font-semibold mb-3 text-lg">📧 Email (Opsional)</label>
+                        <input type="email" id="customerEmail" class="w-full p-5 rounded-3xl bg-white/20 border border-white/30 focus:border-blue-400 focus:outline-none text-white text-lg placeholder-white/50" placeholder="email@example.com">
+                    </div>
+                </div>
+            </div>
+
+            <!-- ACTION BUTTONS -->
+            <div class="grid lg:grid-cols-2 gap-6 pt-12 border-t-4 border-emerald-400/50">
+                <button type="button" onclick="addToCartFromForm()" class="bg-gradient-to-r from-slate-600 to-gray-700 hover:from-slate-700 hover:to-gray-800 py-8 px-12 rounded-4xl font-bold text-2xl shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-500 flex items-center justify-center space-x-4">
+                    <i class="fas fa-shopping-cart text-3xl"></i>
+                    <span>Tambahkan Keranjang</span>
+                </button>
+                <button type="submit" class="bg-gradient-to-r from-emerald-500 via-teal-500 to-green-600 hover:from-emerald-600 hover:to-green-700 py-8 px-12 rounded-4xl font-bold text-2xl shadow-3xl hover:shadow-4xl hover:scale-105 transition-all duration-500 flex items-center justify-center space-x-4 neon-glow text-white">
+                    <i class="fab fa-whatsapp text-3xl"></i>
+                    <span>🚀 Kirim Pesanan ke WA</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</section>
+
+<!-- Interactive Maps Section -->
+<section id="maps" class="py-24 bg-gradient-to-r from-slate-800/50 to-blue-900/30">
+    <div class="max-w-7xl mx-auto px-6">
+        <div class="text-center mb-20 animate-fadeInUp">
+            <h2 class="text-5xl md:text-6xl font-bold gradient-text mb-6">🗺️ Maps Korea Selatan Interaktif</h2>
+            <p class="text-xl md:text-2xl text-white/80 max-w-3xl mx-auto">Klik marker untuk detail lokasi populer</p>
+        </div>
+        
+        <div class="glass rounded-4xl p-8 border-2 border-white/20 overflow-hidden animate-fadeInUp">
+            <div id="koreaMap" class="w-full h-[500px] rounded-3xl mb-8"></div>
+            <div class="grid md:grid-cols-4 gap-6 text-center">
+                <div class="p-6 hover:scale-105 transition-all cursor-pointer group bg-white/10 rounded-3xl" onclick="flyToLocation([37.5665, 126.9780])">
+                    <i class="fas fa-landmark text-4xl text-orange-400 mb-4 group-hover:scale-110 transition-all"></i>
+                    <h4 class="font-bold text-xl mb-2">Gyeongbokgung</h4>
+                    <p class="text-white/70">Istana Kerajaan</p>
+                </div>
+                <div class="p-6 hover:scale-105 transition-all cursor-pointer group bg-white/10 rounded-3xl" onclick="flyToLocation([37.5796, 126.9770])">
+                    <i class="fas fa-utensils text-4xl text-red-400 mb-4 group-hover:scale-110 transition-all"></i>
+                    <h4 class="font-bold text-xl mb-2">Myeongdong</h4>
+                    <p class="text-white/70">Street Food</p>
+                </div>
+                <div class="p-6 hover:scale-105 transition-all cursor-pointer group bg-white/10 rounded-3xl" onclick="flyToLocation([35.1796, 129.0756])">
+                    <i class="fas fa-beach text-4xl text-blue-400 mb-4 group-hover:scale-110 transition-all"></i>
+                    <h4 class="font-bold text-xl mb-2">Haeundae Beach</h4>
+                    <p class="text-white/70">Busan</p>
+                </div>
+                <div class="p-6 hover:scale-105 transition-all cursor-pointer group bg-white/10 rounded-3xl" onclick="flyToLocation([33.4997, 126.5312])">
+                    <i class="fas fa-mountain text-4xl text-emerald-400 mb-4 group-hover:scale-110 transition-all"></i>
+                    <h4 class="font-bold text-xl mb-2">Hallasan</h4>
+                    <p class="text-white/70">Jeju Island</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ENHANCED PAYMENT SECTION - TERHUBUNG LANGSG KE WA -->
+<section id="payment" class="py-24 bg-gradient-to-r from-green-900/30 to-emerald-900/30">
+    <div class="max-w-7xl mx-auto px-6">
+        <div class="text-center mb-20 animate-fadeInUp">
+            <h2 class="text-5xl md:text-6xl font-bold gradient-text mb-6">💳 Pembayaran Aman 1 Klik WA</h2>
+            <p class="text-xl md:text-2xl text-white/80 max-w-3xl mx-auto">Klik metode pembayaran → Langsung kirim data lengkap ke admin</p>
+        </div>
+        
+        <div class="grid md:grid-cols-3 lg:grid-cols-5 gap-8">
+            <!-- Credit Card -->
+            <div class="payment-card glass p-10 rounded-4xl hover:scale-110 transition-all duration-500 group cursor-pointer border-2 border-transparent hover:border-blue-400/50" onclick="checkoutWithPayment('Kartu Kredit', 'Visa/MasterCard/Amex')">
+                <div class="text-center">
+                    <i class="fas fa-credit-card text-6xl text-blue-400 mb-6 group-hover:rotate-12 transition-all"></i>
+                    <h4 class="font-bold text-2xl mb-4 gradient-text">Kartu Kredit</h4>
+                    <p class="text-white/70 mb-4">Visa • MasterCard • Amex</p>
+                    <div class="bg-blue-500/20 p-3 rounded-2xl">
+                        <i class="fas fa-whatsapp text-2xl text-green-400"></i>
+                        <span class="ml-2 font-bold text-green-400">Kirim ke WA</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- E-Wallet -->
+            <div class="payment-card glass p-10 rounded-4xl hover:scale-110 transition-all duration-500 group cursor-pointer border-2 border-transparent hover:border-emerald-400/50" onclick="checkoutWithPayment('E-Wallet', 'OVO/DANA/Gopay')">
+                <div class="text-center">
+                    <i class="fas fa-mobile-alt text-6xl text-emerald-400 mb-6 group-hover:rotate-12 transition-all"></i>
+                    <h4 class="font-bold text-2xl mb-4 gradient-text">E-Wallet</h4>
+                    <p class="text-white/70 mb-4">OVO • DANA • Gopay</p>
+                    <div class="bg-emerald-500/20 p-3 rounded-2xl">
+                        <i class="fas fa-whatsapp text-2xl text-green-400"></i>
+                        <span class="ml-2 font-bold text-green-400">Kirim ke WA</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Bank Transfer -->
+            <div class="payment-card glass p-10 rounded-4xl hover:scale-110 transition-all duration-500 group cursor-pointer border-2 border-transparent hover:border-orange-400/50" onclick="checkoutWithPayment('Bank Transfer', 'BCA/BNI/Mandiri')">
+                <div class="text-center">
+                    <i class="fas fa-university text-6xl text-orange-400 mb-6 group-hover:rotate-12 transition-all"></i>
+                    <h4 class="font-bold text-2xl mb-4 gradient-text">Bank Transfer</h4>
+                    <p class="text-white/70 mb-4">BCA • BNI • Mandiri</p>
+                    <div class="bg-orange-500/20 p-3 rounded-2xl">
+                        <i class="fas fa-whatsapp text-2xl text-green-400"></i>
+                        <span class="ml-2 font-bold text-green-400">Kirim ke WA</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Installment -->
+            <div class="payment-card glass p-10 rounded-4xl hover:scale-110 transition-all duration-500 group cursor-pointer border-2 border-transparent hover:border-purple-400/50" onclick="checkoutWithPayment('Cicilan 0%', '12x Angsuran')">
+                <div class="text-center">
+                    <i class="fas fa-calendar-alt text-6xl text-purple-400 mb-6 group-hover:rotate-12 transition-all"></i>
+                    <h4 class="font-bold text-2xl mb-4 gradient-text">Cicilan 0%</h4>
+                    <p class="text-white/70 mb-4">12x Angsuran</p>
+                    <div class="bg-purple-500/20 p-3 rounded-2xl">
+                        <i class="fas fa-whatsapp text-2xl text-green-400"></i>
+                        <span class="ml-2 font-bold text-green-400">Kirim ke WA</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Full Package -->
+            <div class="payment-card glass p-10 rounded-4xl hover:scale-110 transition-all duration-500 group cursor-pointer border-2 border-transparent hover:border-emerald-400/50 bg-gradient-to-br from-emerald-500/20 to-teal-500/20" onclick="checkoutWithPayment('LUNAS', 'Paket Lengkap')">
+                <div class="text-center">
+                    <i class="fas fa-crown text-6xl text-yellow-400 mb-6 group-hover:rotate-12 transition-all"></i>
+                    <h4 class="font-bold text-2xl mb-4 gradient-text">LUNAS Sekarang</h4>
+                    <p class="text-white/70 mb-4">Diskon 10% Paket Lengkap</p>
+                    <div class="bg-emerald-500/30 p-3 rounded-2xl border-2 border-emerald-400/50">
+                        <i class="fas fa-whatsapp text-2xl text-green-400"></i>
+                        <span class="ml-2 font-bold text-green-400 text-xl">
+                        <span class="ml-2 font-bold text-green-400 text-xl">PESAN SEKARANG</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div> 
+</section>
+
+<!-- Cart Modal -->
+<div id="cartModal" class="fixed inset-0 bg-black/90 backdrop-blur-xl z-50 hidden">
+    <div class="glass max-w-4xl mx-auto m-12 h-[85vh] overflow-y-auto rounded-4xl p-12 relative animate-fadeInUp">
+        <div class="flex justify-between items-center mb-12">
+            <h2 class="text-4xl font-bold gradient-text">🛒 Keranjang Perjalanan</h2>
+            <button id="closeCart" class="p-4 hover:bg-white/30 rounded-3xl text-2xl hover:scale-110 transition-all">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div id="cartItems" class="space-y-6 mb-12">
+            <!-- Dynamic cart items will appear here -->
+        </div>
+        <div class="border-t border-white/20 pt-12">
+            <div class="text-4xl font-bold text-emerald-400 text-right mb-8" id="cartTotal">Rp 0</div>
+            <div class="flex gap-4">
+                <button onclick="clearCart()" class="flex-1 bg-gradient-to-r from-slate-600 to-gray-700 hover:from-slate-700 hover:to-gray-800 py-5 px-8 rounded-3xl font-bold text-xl transition-all">Kosongkan</button>
+                <a href="#" id="checkoutBtn" onclick="checkoutFromCart()" class="flex-1 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 py-5 px-8 rounded-3xl font-bold text-xl shadow-2xl hover:shadow-3xl hover:scale-105 transition-all flex items-center justify-center space-x-3 text-white">
+                    <i class="fab fa-whatsapp text-2xl"></i>
+                    <span>Checkout via WA</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Mobile Menu -->
+<div id="mobileMenu" class="fixed inset-0 bg-black/90 backdrop-blur-xl z-50 hidden lg:hidden transform translate-x-full transition-transform duration-700">
+    <div class="glass w-80 h-full p-12">
+        <div class="flex justify-between items-center mb-16">
+            <h2 class="text-3xl font-bold gradient-text">Menu</h2>
+            <button id="closeMenu" class="p-3 hover:bg-white/30 rounded-2xl text-2xl">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <nav class="space-y-8">
+            <a href="#home" class="block py-6 px-8 glass rounded-3xl font-bold text-xl hover:bg-white/20 transition-all flex items-center space-x-4">
+                <i class="fas fa-home w-8"></i><span>Beranda</span>
+            </a>
+            <a href="#unified-booking" class="block py-6 px-8 glass rounded-3xl font-bold text-xl hover:bg-white/20 transition-all flex items-center space-x-4">
+                <i class="fas fa-plane w-8"></i><span>Pemesanan Lengkap</span>
+            </a>
+            <a href="#maps" class="block py-6 px-8 glass rounded-3xl font-bold text-xl hover:bg-white/20 transition-all flex items-center space-x-4">
+                <i class="fas fa-map w-8"></i><span>Maps Korea</span>
+            </a>
+            <a href="#payment" class="block py-6 px-8 glass rounded-3xl font-bold text-xl hover:bg-white/20 transition-all flex items-center space-x-4">
+                <i class="fas fa-credit-card w-8"></i><span>Pembayaran</span>
+            </a>
+        </nav>
+    </div>
+</div>
+
+<!-- CTA Section -->
+<section id="contact" class="py-32 bg-gradient-to-br from-slate-900 to-purple-900 relative overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-r from-green-500/10 to-blue-500/10 animate-pulse"></div>
+    <div class="max-w-4xl mx-auto px-6 text-center relative z-10">
+        <div class="glass p-16 lg:p-20 rounded-4xl max-w-3xl mx-auto animate-fadeInUp border-4 border-emerald-400/50">
+            <div class="text-6xl mb-8 animate-bounce">🚀</div>
+            <h2 class="text-5xl md:text-6xl font-bold gradient-text mb-8">Siap Ke Korea Premium?</h2>
+            <p class="text-2xl text-white/90 mb-12 leading-relaxed">Form sudah lengkap! 1 klik WhatsApp = itinerary custom dalam 5 menit!</p>
+            <div class="flex flex-col lg:flex-row gap-6 justify-center items-center">
+                <button onclick="scrollToSection('unified-booking')" class="flex-1 max-w-md lg:w-auto bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 px-12 py-7 rounded-4xl font-bold text-2xl shadow-3xl hover:shadow-4xl hover:scale-105 transition-all duration-500 flex items-center justify-center space-x-4 neon-glow text-white">
+                    <i class="fas fa-edit text-3xl"></i>
+                    <span>Isi Form Sekarang</span>
+                </button>
+                <a href="https://wa.me/6285358655291?text=Halo%20Admin%20KoreaPremium%20🇰🇷%0A%0ASaya%20siap%20booking%20paket%20Premium!" target="_blank" 
+                   class="flex-1 max-w-md lg:w-auto bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 px-12 py-7 rounded-4xl font-bold text-2xl shadow-3xl hover:shadow-4xl hover:scale-105 transition-all duration-500 flex items-center justify-center space-x-4 neon-glow text-white">
+                    <i class="fab fa-whatsapp text-3xl"></i>
+                    <span>Chat Admin (24/7)</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="bg-slate-950/50 border-t border-white/10 py-16 mt-24">
+    <div class="max-w-7xl mx-auto px-6">
+        <div class="grid md:grid-cols-4 gap-12 mb-12">
+            <div>
+                <div class="flex items-center space-x-3 mb-6 logo-glow">
+                    <div class="w-16 h-16 bg-gradient-to-r from-pink-500 to-purple-500 rounded-3xl flex items-center justify-center shadow-2xl">
+                        <i class="fas fa-plane text-white text-2xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-bold gradient-text">KoreaPremium</h3>
+                        <p class="text-white/60">Perjalanan mewah ke Korea Selatan</p>
+                    </div>
+                </div>
+                <div class="flex space-x-4">
+                    <a href="https://wa.me/6285358655291" class="w-14 h-14 bg-white/10 hover:bg-green-500/30 hover:scale-110 rounded-2xl flex items-center justify-center transition-all" title="WhatsApp">
+                        <i class="fab fa-whatsapp text-xl text-green-400"></i>
+                    </a>
+                    <a href="https://instagram.com/koreapremium" class="w-14 h-14 bg-white/10 hover:bg-pink-500/30 hover:scale-110 rounded-2xl flex items-center justify-center transition-all" title="Instagram">
+                        <i class="fab fa-instagram text-xl text-pink-400"></i>
+                    </a>
+                    <a href="https://facebook.com/koreapremium" class="w-14 h-14 bg-white/10 hover:bg-blue-500/30 hover:scale-110 rounded-2xl flex items-center justify-center transition-all" title="Facebook">
+                        <i class="fab fa-facebook text-xl text-blue-600"></i>
+                    </a>
+                </div>
+            </div>
+            <div>
+                <h4 class="text-xl font-bold mb-6 gradient-text">Layanan Utama</h4>
+                <ul class="space-y-3 text-white/70">
+                    <li><a href="#unified-booking" class="hover:text-cyan-400 transition-all">✈️ Penerbangan Premium</a></li>
+                    <li><a href="#unified-booking" class="hover:text-emerald-400 transition-all">🏨 Hotel Bintang 5</a></li>
+                    <li><a href="#unified-booking" class="hover:text-orange-400 transition-all">🍖 Kuliner Michelin</a></li>
+                    <li><a href="#maps" class="hover:text-purple-400 transition-all">🗺️ Maps Interaktif</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-xl font-bold mb-6 gradient-text">Destinasi Populer</h4>
+                <ul class="space-y-3 text-white/70">
+                    <li><a href="#" class="hover:text-cyan-400 transition-all">Seoul - Gangnam</a></li>
+                    <li><a href="#" class="hover:text-emerald-400 transition-all">Busan - Haeundae</a></li>
+                    <li><a href="#" class="hover:text-orange-400 transition-all">Jeju Island</a></li>
+                    <li><a href="#" class="hover:text-purple-400 transition-all">Gyeongju Heritage</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-xl font-bold mb-6 gradient-text">Kontak Cepat</h4>
+                <div class="space-y-4 text-white/70">
+                    <div class="flex items-center space-x-3 hover:text-emerald-400 transition-all">
+                        <i class="fas fa-phone text-emerald-400"></i>
+                        <span>6285358655291</span>
+                    </div>
+                    <div class="flex items-center space-x-3 hover:text-blue-400 transition-all">
+                        <i class="fas fa-envelope text-blue-400"></i>
+                        <span>hello@koreapremium.com</span>
+                    </div>
+                    <div class="flex items-center space-x-3 hover:text-orange-400 transition-all">
+                        <i class="fas fa-map-marker-alt text-orange-400"></i>
+                        <span>Jakarta Selatan</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="border-t border-white/10 pt-12 text-center text-white/40 text-sm">
+            <p>&copy; 2024 KoreaPremium Travel. All Rights Reserved | Licensed Travel Agency Indonesia | Premium Experience to South Korea 🇰🇷</p>
+        </div>
+    </div>
+</footer>
+
+<script>
+    // Global State
+    let cart = [];
+    let map;
+    const krwRate = 15250; // 1 KRW = Rp 15,250
+
+    // DOM Elements
+    const elements = {
+        loading: document.getElementById('loading'),
+        dashboard: document.getElementById('dashboard'),
+        menuToggle: document.getElementById('menuToggle'),
+        closeMenu: document.getElementById('closeMenu'),
+        mobileMenu: document.getElementById('mobileMenu'),
+        cartBtn: document.getElementById('cartBtn'),
+        cartCount: document.getElementById('cartCount'),
+        closeCart: document.getElementById('closeCart'),
+        cartModal: document.getElementById('cartModal'),
+        cartItems: document.getElementById('cartItems'),
+        cartTotal: document.getElementById('cartTotal'),
+        unifiedForm: document.getElementById('unifiedForm'),
+        mapContainer: document.getElementById('koreaMap'),
+        checkoutBtn: document.getElementById('checkoutBtn'),
+        totalEstimate: document.getElementById('totalEstimate')
+    };
+
+    // Initialize App
+    document.addEventListener('DOMContentLoaded', function() {
+        initLoading();
+        initMap();
+        initForm();
+        initNavigation();
+        initCart();
+        initCurrency();
+        initPriceCalculator();
+        animateCounters();
+    });
+
+    // Loading Screen
+    function initLoading() {
+        setTimeout(() => {
+            elements.loading.style.opacity = '0';
+            elements.loading.style.pointerEvents = 'none';
+            setTimeout(() => {
+                elements.loading.remove();
+                elements.dashboard.classList.remove('scale-x-0');
+            }, 500);
+        }, 2000);
+    }
+
+    // Smooth Scroll
+    function scrollToSection(sectionId) {
+        document.getElementById(sectionId)?.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start' 
+        });
+    }
+
+    // Navigation
+    function initNavigation() {
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                scrollToSection(link.getAttribute('href').substring(1));
+            });
+        });
+
+        elements.menuToggle?.addEventListener('click', () => {
+            elements.mobileMenu.classList.remove('translate-x-full', 'hidden');
+        });
+
+        elements.closeMenu?.addEventListener('click', () => {
+            elements.mobileMenu.classList.add('translate-x-full');
+            setTimeout(() => elements.mobileMenu.classList.add('hidden'), 700);
+        });
+    }
+
+    // Map
+    function initMap() {
+        if (!elements.mapContainer) return;
+        map = L.map('koreaMap').setView([37.5665, 126.9780], 8);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        addMapMarkers();
+    }
+
+    function addMapMarkers() {
+        const locations = [
+            { coords: [37.5665, 126.9780], name: 'Gyeongbokgung Palace', icon: '🏯' },
+            { coords: [37.5796, 126.9770], name: 'Myeongdong', icon: '🍜' },
+            { coords: [35.1796, 129.0756], name: 'Haeundae Beach', icon: '🏖️' },
+            { coords: [33.4997, 126.5312], name: 'Hallasan', icon: '⛰️' }
+        ];
+        locations.forEach(loc => {
+            L.marker(loc.coords).addTo(map).bindPopup(`<b>${loc.icon} ${loc.name}</b>`);
+        });
+    }
+
+    window.flyToLocation = (coords) => map.flyTo(coords, 14, { duration: 2 });
+
+    // Currency
+    function initCurrency() {
+        document.getElementById('krwRate').textContent = krwRate.toLocaleString();
+        calculateKRW();
+    }
+
+    window.calculateKRW = () => {
+        const idr = parseInt(document.getElementById('idrInput').value.replace(/[^\d]/g, '')) || 0;
+        document.getElementById('krwOutput').textContent = Math.round(idr / krwRate).toLocaleString();
+    };
+
+    // REAL-TIME PRICE CALCULATOR
+    function initPriceCalculator() {
+        document.querySelectorAll('input[name="services"]').forEach(checkbox => {
+            checkbox.addEventListener('change', calculateTotalEstimate);
+        });
+        ['passengers', 'departure', 'destination'].forEach(id => {
+            document.getElementById(id)?.addEventListener('change', calculateTotalEstimate);
+        });
+    }
+
+    function calculateTotalEstimate() {
+        let total = 0;
+        const passengers = parseInt(document.getElementById('passengers')?.value) || 1;
+        
+        document.querySelectorAll('input[name="services"]:checked').forEach(cb => {
+            total += parseInt(cb.dataset.price) * passengers;
+        });
+
+        elements.totalEstimate.textContent = `Rp ${total.toLocaleString()}`;
+    }
+
+    // Unified Form Handler
+    function initForm() {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('departDate').min = today;
+
+        document.getElementById('departDate').addEventListener('change', function() {
+            document.getElementById('returnDate').min = this.value;
+        });
+
+        elements.unifiedForm?.addEventListener('submit', handleUnifiedSubmit);
+    }
+
+    function getFormData() {
+        return {
+            departure: document.getElementById('departure')?.value || '',
+            destination: document.getElementById('destination')?.value || '',
+            departDate: document.getElementById('departDate')?.value || '',
+            returnDate: document.getElementById('returnDate')?.value || '',
+            passengers: document.getElementById('passengers')?.value || '1',
+            budget: document.getElementById('budget')?.value || '',
+            services: Array.from(document.querySelectorAll('input[name="services"]:checked')).map(cb => cb.value),
+            customerName: document.getElementById('customerName')?.value || '',
+            customerPhone: document.getElementById('customerPhone')?.value || '',
+            customerEmail: document.getElementById('customerEmail')?.value || '',
+            totalEstimate: elements.totalEstimate.textContent
+        };
+    }
+
+    function handleUnifiedSubmit(e) {
+        e.preventDefault();
+        const formData = getFormData();
+        
+        if (!formData.customerPhone || !formData.customerName) {
+            showNotification('Lengkapi nama dan WhatsApp!', 'error');
+            return;
+        }
+
+        const servicesText = formData.services.length ? formData.services.join(', ') : 'Semua Layanan';
+        const message = `🌟 *PESANAN KOREAPREMIUM PREMIUM* 🌟%0A%0A👤 *PEMESAN*%0A📛 Nama: ${formData.customerName}%0A📱 WA: ${formData.customerPhone}%0A✉️ Email: ${formData.customerEmail}%0A%0A✈️ *RINCIAN PERJALANAN*%0A🛫 Asal: ${formData.departure}%0A🎯 Tujuan: ${formData.destination}%0A📅 Pergi: ${formData.departDate}%0A📅 Pulang: ${formData.returnDate || 'Fleksibel'}%0A👥 Orang: ${formData.passengers}%0A💰 Budget: ${formData.budget}%0A%0A🎁 *LAYANAN DIPILIH*%0A${servicesText}%0A%0A💳 *ESTIMASI TOTAL*%0A${formData.totalEstimate}%0A%0A⚡ *SIAP BOOKING SEKARANG!* 🙏`;
+        window.open(`https://wa.me/6285358655291?text=${message}`);
+        showNotification('✅ Pesanan terkirim ke WhatsApp Admin!', 'success');
+    }
+
+    // Cart System
+    function initCart() {
+        elements.cartBtn?.addEventListener('click', toggleCartModal);
+        elements.closeCart?.addEventListener('click', toggleCartModal);
+        elements.cartModal?.addEventListener('click', (e) => {
+            if (e.target === elements.cartModal) toggleCartModal();
+        });
+    }
+
+    window.addToCartFromForm = () => {
+        const formData = getFormData();
+        const cartItem = {
+            id: `unified-${Date.now()}`,
+            name: 'Paket Korea Premium Lengkap',
+            formData,
+            timestamp: new Date().toISOString(),
+            price: parseInt(elements.totalEstimate.textContent.replace(/[^\d]/g, '')) || 0
+        };
+        cart.push(cartItem);
+        updateCartDisplay();
+        showNotification('✅ Ditambahkan ke keranjang!', 'success');
+        scrollToSection('payment');
+    };
+
+    function updateCartDisplay() {
+        elements.cartCount.textContent = cart.length;
+        
+        if (cart.length === 0) {
+            elements.cartItems.innerHTML = '<div class="text-center py-12 text-white/50"><i class="fas fa-shopping-cart text-6xl mb-4"></i><p class="text-2xl">Keranjang kosong</p></div>';
+            elements.cartTotal.textContent = 'Rp 0';
+            return;
+        }
+
+        let total = 0;
+        elements.cartItems.innerHTML = cart.map((item, index) => {
+            total += item.price;
+            return `
+                <div class="glass p-8 rounded-4xl flex justify-between items-center group hover:scale-105 transition-all border-2 border-emerald-400/30">
+                    <div>
+                        <h4 class="font-bold text-2xl mb-3 gradient-text">${item.name}</h4>
+                        <p class="text-emerald-400 text-lg">${item.formData.destination || ''}</p>
+                        <p class="text-white/70 text-sm">${new Date(item.timestamp).toLocaleDateString('id-ID')}</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-3xl font-bold text-emerald-400 mb-4">Rp ${item.price.toLocaleString()}</div>
+                        <button onclick="removeFromCart(${index})" class="p-3 bg-red-500/80 hover:bg-red-600 text-white rounded-2xl text-lg font-bold">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        elements.cartTotal.textContent = `Rp ${total.toLocaleString()}`;
+    }
+
+    window.removeFromCart = (index) => {
+        cart.splice(index, 1);
+        updateCartDisplay();
+        showNotification('🗑️ Item dihapus', 'warning');
+    };
+
+    window.clearCart = () => {
+        cart = [];
+        updateCartDisplay();
+        showNotification('Keranjang dikosongkan', 'info');
+    };
+
+    window.toggleCartModal = () => {
+        elements.cartModal.classList.toggle('hidden');
+        if (!elements.cartModal.classList.contains('hidden')) {
+            updateCartDisplay();
+        }
+    };
+
+    // Payment Checkout
+    window.checkoutWithPayment = (method, details) => {
+        const formData = getFormData();
+        const total = parseInt(elements.totalEstimate.textContent.replace(/[^\d]/g, '')) || 0;
+        
+        const message = `💳 *CHECKOUT PEMBAYARAN*%0A%0A👤 ${formData.customerName}%0A📱 ${formData.customerPhone}%0A%0A📦 *PESANAN*%0A${formData.services.join(', ') || 'Paket Lengkap'}%0A👥 ${formData.passengers} orang%0A📍 ${formData.destination}%0A%0A💰 *TOTAL* Rp ${total.toLocaleString()}%0A💳 *METODE*: ${method} (${details})%0A%0A⚡ Konfirmasi pembayaran sekarang!`;
+        
+        window.open(`https://wa.me/6285358655291?text=${message}`);
+        showNotification(`✅ Checkout ${method} dikirim ke WA!`, 'success');
+    };
+
+    window.checkoutFromCart = () => {
+        if (cart.length === 0) return;
+        
+        const total = cart.reduce((sum, item) => sum + item.price, 0);
+        const formData = cart[0].formData;
+        
+        const message = `🛒 *CHECKOUT KERANJANG*%0A%0A📦 *ITEM* (${cart.length})%0A${cart.map(item => `• ${item.name} - Rp ${item.price.toLocaleString()}`).join('%0A')}%0A%0A💰 *TOTAL*: Rp ${total.toLocaleString()}%0A%0A👤 ${formData.customerName}%0A📱 ${formData.customerPhone}%0A✈️ ${formData.destination}`;
+        
+        window.open(`https://wa.me/6285358655291?text=${message}`);
+        showNotification('✅ Checkout keranjang dikirim!', 'success');
+    };
+
+    // Notifications
+    function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `fixed top-24 right-6 z-[1000] p-6 rounded-4xl text-white font-bold shadow-3xl transform translate-x-full transition-all duration-500 text-xl ${{
+            'success': 'bg-emerald-500 neon-glow',
+            'error': 'bg-red-500',
+            'warning': 'bg-orange-500',
+            'info': 'bg-blue-500'
+        }[type]}`;
+        notification.textContent = message;
+        
+        document.body.appendChild(notification);
+        setTimeout(() => notification.classList.remove('translate-x-full'), 100);
+        setTimeout(() => {
+            notification.classList.add('translate-x-full');
+            setTimeout(() => notification.remove(), 500);
+        }, 4000);
+    }
+
+    // Counter Animation
+    function animateCounters() {
+        document.querySelectorAll('[data-target]').forEach(counter => {
+            const target = parseInt(counter.dataset.target);
+            let current = 0;
+            const increment = target / 100;
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    counter.textContent = target.toLocaleString();
+                    clearInterval(timer);
+                } else {
+                    counter.textContent = Math.floor(current).toLocaleString();
+                }
+            }, 30);
+        });
+    }
+
+    // Expose global functions
+    window.scrollToSection = scrollToSection;
+    window.addToCartFromForm = addToCartFromForm;
+    window.calculateKRW = calculateKRW;
+    window.removeFromCart = removeFromCart;
+    window.clearCart = clearCart;
+    window.flyToLocation = flyToLocation;
+    window.toggleCartModal = toggleCartModal;
+    window.checkoutWithPayment = checkoutWithPayment;
+    window.checkoutFromCart = checkoutFromCart;
+</script>
+
+</body>
+</html>
